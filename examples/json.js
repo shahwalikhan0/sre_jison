@@ -1,78 +1,16 @@
-var Generator = require("../lib/jison").Generator;
+var ParserGenerator = require("./generator");
 
-exports.grammar = {
-    "comment": "ECMA-262 5th Edition, 15.12.1 The JSON Grammar.",
-    "author": "Zach Carter",
+function main() {
+  // Instantiate the ParserGenerator
+  var parserGenerator = new ParserGenerator();
 
-    "lex": {
-        "macros": {
-            "digit": "[0-9]",
-            "esc": "\\\\",
-            "int": "-?(?:[0-9]|[1-9][0-9]+)",
-            "exp": "(?:[eE][-+]?[0-9]+)",
-            "frac": "(?:\\.[0-9]+)"
-        },
-        "rules": [
-            ["\\s+", "/* skip whitespace */"],
-            ["{int}{frac}?{exp}?\\b", "return 'NUMBER';"],
-            ["\"(?:{esc}[\"bfnrt/{esc}]|{esc}u[a-fA-F0-9]{4}|[^\"{esc}])*\"", "yytext = yytext.substr(1,yyleng-2); return 'STRING';"],
-            ["\\{", "return '{'"],
-            ["\\}", "return '}'"],
-            ["\\[", "return '['"],
-            ["\\]", "return ']'"],
-            [",", "return ','"],
-            [":", "return ':'"],
-            ["true\\b", "return 'TRUE'"],
-            ["false\\b", "return 'FALSE'"],
-            ["null\\b", "return 'NULL'"]
-        ]
-    },
+  // Generate the parser code
+  var code = parserGenerator.generateParser();
 
-    "tokens": "STRING NUMBER { } [ ] , : TRUE FALSE NULL",
-    "start": "JSONText",
+  // Log the generated code
+  console.log(code);
+}
 
-    "bnf": {
-        "JSONString": [ "STRING" ],
-        
-        "JSONNullLiteral": [ "NULL" ],
-
-        "JSONNumber": [ "NUMBER" ],
-
-        "JSONBooleanLiteral": [ "TRUE", "FALSE" ],
-
-
-        "JSONText": [ "JSONValue" ],
-
-        "JSONValue": [ "JSONNullLiteral",
-                       "JSONBooleanLiteral",
-                       "JSONString",
-                       "JSONNumber",
-                       "JSONObject",
-                       "JSONArray" ],
-
-        "JSONObject": [ "{ }",
-                        "{ JSONMemberList }" ],
-
-        "JSONMember": [ "JSONString : JSONValue" ],
-
-        "JSONMemberList": [ "JSONMember",
-                              "JSONMemberList , JSONMember" ],
-
-        "JSONArray": [ "[ ]",
-                       "[ JSONElementList ]" ],
-
-        "JSONElementList": [ "JSONValue",
-                             "JSONElementList , JSONValue" ]
-    }
-};
-
-var options = {type: "slr", moduleType: "commonjs", moduleName: "jsoncheck"};
-
-exports.main = function main () {
-    var code = new Generator(exports.grammar, options).generate();
-    console.log(code);
-};
-
-if (require.main === module)
-    exports.main();
-
+if (require.main === module) {
+  main();
+}
